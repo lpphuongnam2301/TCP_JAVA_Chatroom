@@ -8,7 +8,12 @@ package client;
 
 import temp.LeftMenu;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
@@ -19,9 +24,16 @@ import java.util.ArrayList;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractCellEditor;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import temp.ObjectSend;
 import temp.UserDTO;
 
@@ -39,7 +51,8 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         "icons8-gear-20.png", "icons8-list-20.png"};
     private ArrayList<LeftMenu> navObj = new ArrayList<>();
     FormatTable formatTable = new FormatTable();
-    DefaultTableModel model;
+    DefaultTableModel model = new DefaultTableModel();
+     DefaultTableModel modelAlert = new DefaultTableModel();
     /**
      * Creates new form OverrallFrame
      */
@@ -69,7 +82,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         try
         {
         initComponents();
-        setSize(1015, 638);
+        setSize(1055, 638);
         leftmenu();
         alertTableFormat();
         userTableFormat();
@@ -107,18 +120,16 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
     public void alertTableFormat()
     {
         formatTable.formatTablenoIcon(alertTable);
-        model =new DefaultTableModel();
         Vector header = new Vector();
-        header.add("ID");
         header.add("Nội dung");
         header.add("");
-        if (model.getRowCount()==0)
+        if (modelAlert.getRowCount()==0)
         { 
-                model=new DefaultTableModel(header,0){
+                modelAlert=new DefaultTableModel(header,0){
                 @Override//No edit
                 public boolean isCellEditable(int row, int column) 
                 {       
-                    if(column == 2)
+                    if(column == 1)
                     {
                         return true;
                     } else {
@@ -127,15 +138,33 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                 }
             };
         } 
-        alertTable.setModel(model);
-        alertTable.getColumnModel().getColumn(0).setPreferredWidth(30);
-        alertTable.getColumnModel().getColumn(1).setPreferredWidth(230);
-        alertTable.getColumnModel().getColumn(2).setPreferredWidth(40);
+        alertTable.setModel(modelAlert);
+        //alertTable.getColumnModel().getColumn(0).setPreferredWidth(30);
+        alertTable.getColumnModel().getColumn(1).setCellEditor(new deleteAlert());
+        alertTable.getColumnModel().getColumn(1).setCellRenderer(new deleteAlert());
+        alertTable.getColumnModel().getColumn(0).setPreferredWidth(280);
+        alertTable.getColumnModel().getColumn(1).setPreferredWidth(50);
+    }
+    public void loadAlertTable(String alert)
+    {
+        try
+        {
+
+            Vector row = new Vector();
+            row.add(alert);
+            modelAlert.addRow(row);
+           
+            alertTable.setModel(modelAlert);
+            
+            Rectangle cellBounds = alertTable.getCellRect(alertTable.getRowCount()+5, 0, true);
+            alertTable.scrollRectToVisible(cellBounds);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
     public void userTableFormat()
     {
         formatTable.formatTablenoIcon(userTable);
-        model =new DefaultTableModel();
         Vector header = new Vector();
         header.add("Email");
         header.add("");
@@ -159,7 +188,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         userTable.getColumnModel().getColumn(1).setCellEditor(new AddFriendButtonRender(userTable));
         userTable.getColumnModel().getColumn(1).setCellRenderer(new AddFriendButtonRender(userTable));
         userTable.getColumnModel().getColumn(0).setPreferredWidth(260);
-        userTable.getColumnModel().getColumn(1).setPreferredWidth(40);
+        userTable.getColumnModel().getColumn(1).setPreferredWidth(60);
     }
     public void loadUserTable()
     {
@@ -211,6 +240,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             ObjectSend obj = (ObjectSend) in.readObject();
                             if (obj.getTag().equals("send_online_list")) 
                             {
+                                loadAlertTable(obj.getObject().toString());
                                 System.out.println(obj.getObject());
                                 ChatPanel.arrayUser = obj.getArr();
                                 content.removeAll();
@@ -327,7 +357,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                                     ChatPanel.loadChat();
                                 } else {
                                     //alert
-                                    System.out.println(obj.getObject());
+                                    loadAlertTable(obj.getObject().toString());
                                 }
                             }
                             if (obj.getTag().equals("send_mess_to_group")) 
@@ -339,12 +369,12 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                                     GroupPanel.loadChat();
                                 } else {
                                     //alert
-                                    System.out.println(obj.getObject());
+                                    loadAlertTable(obj.getObject().toString());
                                 }
                             }
                             if (obj.getTag().equals("out_group")) 
                             {                                
-                                System.out.println(obj.getObject());
+                                loadAlertTable(obj.getObject().toString());
                             }
                             if (obj.getTag().equals("add_friend_request")) 
                             {                                
@@ -363,8 +393,8 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             if (obj.getTag().equals("add_friend_request_NO")) 
                             {                
                                 //alert
-                                String alert = (String)obj.getObject();
-                                System.out.println(alert);
+                                //String alert = (String)obj.getObject();
+                                loadAlertTable(obj.getObject().toString());
                             }
                             if (obj.getTag().equals("get_file_mess_list")) 
                             {                
@@ -515,7 +545,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel3.setText("THÔNG BÁO");
-        jPanel4.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 10, 130, 30));
+        jPanel4.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 10, 260, 30));
 
         alertTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -531,9 +561,9 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         alertTable.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         jScrollPane2.setViewportView(alertTable);
 
-        jPanel4.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 220, 220));
+        jPanel4.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 260, 220));
 
-        jPanel1.add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 220, 260));
+        jPanel1.add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 260, 260));
 
         jPanel5.setBackground(new java.awt.Color(0, 102, 153));
         jPanel5.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -542,7 +572,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel2.setText("USERS ONLINE IN SERVER ");
-        jPanel5.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 10, 220, 30));
+        jPanel5.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 10, 260, 30));
 
         userTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -558,11 +588,11 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         userTable.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         jScrollPane1.setViewportView(userTable);
 
-        jPanel5.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 220, 290));
+        jPanel5.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 50, 260, 290));
 
-        jPanel1.add(jPanel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 260, 220, 340));
+        jPanel1.add(jPanel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 260, 260, 340));
 
-        jPanel2.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(780, 0, 220, 600));
+        jPanel2.add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(780, 0, 260, 600));
 
         jPanel3.setBackground(new java.awt.Color(51, 204, 255));
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -585,7 +615,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 1042, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -741,5 +771,57 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
     public void setUserEmail(String userEmail) {
         this.userEmail = userEmail;
     }
+    class deleteAlert extends AbstractCellEditor implements TableCellRenderer,TableCellEditor,ActionListener{
+    JButton addbtn;
+    Icon addIcon = new ImageIcon(this.getClass().getResource("/img/icons8-close-window-20.png"));
+    public deleteAlert(){
+        addbtn = new JButton();
+        addbtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        addbtn.setIcon(addIcon);
+        addbtn.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e){
+                try
+                {
+                    stopCellEditing();
+                    
+                    
+                    stopCellEditing();
+                } catch(Exception err) {
+                    System.out.println(err);}
+            }
+        });
+    }
+
+    @Override
+    public Object getCellEditorValue() {
+        return null;
+    }
     
+    @Override 
+    public boolean stopCellEditing(){
+        return super.stopCellEditing();
+    }
+    
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+        if (value instanceof Icon) addbtn.setIcon((Icon)value);
+        return addbtn;
+    }
+
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        if(value instanceof Icon) addbtn.setIcon((Icon)value);
+        return addbtn;
+    }
+    
+    @Override
+    protected void fireEditingStopped(){
+        super.fireEditingStopped();
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+    }
+}
 }

@@ -81,7 +81,13 @@ public class ObjectSend<T> implements Serializable{
        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
        return format.format(timetamp);
     }
-
+    public static String getOnlyTime()
+    {
+        Date date = new Date();
+       Timestamp timetamp = new Timestamp(date.getTime());
+       SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss"); 
+       return format.format(timetamp);
+    }
     public String getAlert() {
         return alert;
     }

@@ -151,7 +151,7 @@ public class GroupFileDownDialog extends javax.swing.JFrame {
                             }
                         }
                     } catch (Exception ex) {
-                        ex.printStackTrace();
+                        //ex.printStackTrace();
                     }
                     JOptionPane.showMessageDialog(jPanel1, "Download file hoàn tất!","THÀNH CÔNG", JOptionPane.PLAIN_MESSAGE);
                     stopCellEditing();
