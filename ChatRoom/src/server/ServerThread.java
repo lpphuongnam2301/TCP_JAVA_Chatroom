@@ -134,7 +134,7 @@ public class ServerThread implements Runnable {
                         String username = dal.readUserInfo(dto.getUser_sender()).getUser_name();
                         ArrayList arr = dal.readMessageFromUser(dto.getUser_sender() + "," + dto.getUser_receive(), username + "," + dto.getUser_sender());
 
-                        ObjectSend mess = new ObjectSend(arr, "send_mess_to_user",ObjectSend.getOnlyTime() + ": "+ username + " gửi tin!", dto.getUser_sender());
+                        ObjectSend mess = new ObjectSend(arr, "send_mess_to_user",ObjectSend.getOnlyTime() + ": "+ username + " gửi tin cho bạn!", dto.getUser_sender());
                         serverThreadBus.sendOneUser(mess, dto.getUser_receive());//alert
                     }
                 }
@@ -144,7 +144,7 @@ public class ServerThread implements Runnable {
                     dal.addGroupMess(dto);
                     
                     ArrayList arr = dal.readMessageFromGroup(Integer.toString(dto.getGroup_id()), dto.getGroup_name());
-                    ObjectSend mess = new ObjectSend(arr, "send_mess_to_group",ObjectSend.getOnlyTime() + ": "+ "Nhóm " + dto.getGroup_name() + "có tin nhắn!", Integer.toString(dto.getGroup_id()));
+                    ObjectSend mess = new ObjectSend(arr, "send_mess_to_group",ObjectSend.getOnlyTime() + ": "+ "Nhóm " + dto.getGroup_name() + "có tin nhắn mới!", Integer.toString(dto.getGroup_id()));
                     serverThreadBus.sendGroupMember(mess, dto.getUser_sender(), dal.readGroupMember(Integer.toString(dto.getGroup_id())));//alert
                 }
                 if(obj.getTag().equals("update_mess_status"))
@@ -217,7 +217,7 @@ public class ServerThread implements Runnable {
                     String friend = (String)obj.getObject();
                     String user = (String)obj.getObjectTemp();
                     
-                    //ObjectSend objSend = new ObjectSend("LE PHAM PHUONG NAM từ chối kết bạn!");
+                    //ObjectSend objSend = new ObjectSend("phuongnam2301@gmail.com từ chối kết bạn!");
                     ObjectSend objSend = new ObjectSend("add_friend_request_NO", user + " từ chối kết bạn!");
                     serverThreadBus.sendOneUser(objSend, friend);
                 }
@@ -264,6 +264,8 @@ public class ServerThread implements Runnable {
                         for (String a : userList) 
                         {
                             dal.addGroupMember(a, groupId, time);
+                            ObjectSend nam = new ObjectSend("alert_join_group","Bạn được thêm vào nhóm " + groupName);
+                            serverThreadBus.sendOneUser(nam, a);
                         }
                     }
                     dal.updateGroupInfo(groupId, groupName);    
@@ -325,6 +327,22 @@ public class ServerThread implements Runnable {
                     
                     ObjectSend objSend = new ObjectSend(dal.readFileListGroup(groupId),"get_file_group_mess_list");
                     write(objSend);
+                }
+                if(obj.getTag().equals("get_edit_user_info"))
+                {            
+                    String emailUser = (String)obj.getObject();
+                    
+                    
+                    ObjectSend objSend = new ObjectSend("get_edit_user_info", dal.readUserInfo(emailUser));
+                    write(objSend);
+                }
+                if(obj.getTag().equals("edit_user_info"))
+                {            
+                    UserDTO user = (UserDTO)obj.getObject();
+                    dal.updateUserInfo(user);
+                    
+//                    ObjectSend objSend = new ObjectSend("get_edit_user_info", dal.readUserInfo(user.getUser_email()));
+//                    write(objSend);
                 }
                 if(obj.getTag().equals("log_out"))
                 {            

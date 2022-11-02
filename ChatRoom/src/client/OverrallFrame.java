@@ -42,17 +42,18 @@ import temp.UserDTO;
  * @author Nam
  */
 public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
-    public static String userEmail = "nam2301@gmail.com";
+    public static String userEmail = "client@gmail.com";
     public static ArrayList<String> userOnline = new ArrayList<>();
     private static ObjectOutputStream out;
     private ObjectInputStream in;
+    public ArrayList<String> arrAlert = new ArrayList<>();
     private Socket socket = null;
     String arrIcon[] = {"icons8-speech-balloon-20.png","icons8-management-20.png",
         "icons8-gear-20.png", "icons8-list-20.png"};
     private ArrayList<LeftMenu> navObj = new ArrayList<>();
     FormatTable formatTable = new FormatTable();
     DefaultTableModel model = new DefaultTableModel();
-     DefaultTableModel modelAlert = new DefaultTableModel();
+    DefaultTableModel modelAlert = new DefaultTableModel();
     /**
      * Creates new form OverrallFrame
      */
@@ -107,21 +108,17 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
     
     public void logOut()
     {
-        if (JOptionPane.showConfirmDialog(this, "Đăng xuất?", "WARNING",
-        JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) 
-        {
-            ObjectSend obj = new ObjectSend("log_out", userEmail);
-            write(obj);
-            close(socket, in, out);
-            this.dispose();
-        } 
+
+        ObjectSend obj = new ObjectSend("log_out", userEmail);
+        write(obj);
+        close(socket, in, out);
+        this.dispose();
     }
     
     public void alertTableFormat()
     {
         formatTable.formatTablenoIcon(alertTable);
         Vector header = new Vector();
-        header.add("Nội dung");
         header.add("");
         if (modelAlert.getRowCount()==0)
         { 
@@ -129,35 +126,30 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                 @Override//No edit
                 public boolean isCellEditable(int row, int column) 
                 {       
-                    if(column == 1)
-                    {
-                        return true;
-                    } else {
-                        return false;
-                    }
+                    return false;
                 }
             };
         } 
         alertTable.setModel(modelAlert);
-        //alertTable.getColumnModel().getColumn(0).setPreferredWidth(30);
-        alertTable.getColumnModel().getColumn(1).setCellEditor(new deleteAlert());
-        alertTable.getColumnModel().getColumn(1).setCellRenderer(new deleteAlert());
-        alertTable.getColumnModel().getColumn(0).setPreferredWidth(280);
-        alertTable.getColumnModel().getColumn(1).setPreferredWidth(50);
     }
     public void loadAlertTable(String alert)
     {
+        arrAlert.add(alert);
         try
         {
-
-            Vector row = new Vector();
-            row.add(alert);
-            modelAlert.addRow(row);
+            int rowCount = modelAlert.getRowCount();//remove all row
+            for (int i = rowCount - 1; i >= 0; i--) 
+            {
+                modelAlert.removeRow(i);
+            }
+            for (int i = arrAlert.size() - 1; i >= 0; i--) 
+            {
+                Vector row = new Vector();
+                row.add(arrAlert.get(i));
+                modelAlert.addRow(row);
+            }
            
             alertTable.setModel(modelAlert);
-            
-            Rectangle cellBounds = alertTable.getCellRect(alertTable.getRowCount()+5, 0, true);
-            alertTable.scrollRectToVisible(cellBounds);
         } catch(Exception e) {
             e.printStackTrace();
         }
@@ -279,6 +271,10 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                                 SingleChatPanel.currentEmail = userEmail;
                                 SingleChatPanel.currentUsername = userName;
                                 ChatPanel.loadChat();
+                            }
+                            if (obj.getTag().equals("alert_join_group")) 
+                            {
+                                loadAlertTable(obj.getObject().toString());
                             }
                             if (obj.getTag().equals("get_block_user_chat_panel")) 
                             {
@@ -426,6 +422,18 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                                 resetStatic();
                                 content.removeAll();
                                 JPanel p1 = new BlockPanel();
+                                p1.setSize(720,600);
+                                content.add(p1);
+                                content.repaint();
+                                content.revalidate();
+                            }
+                            if(obj.getTag().equals("get_edit_user_info"))
+                            {
+                                UserDTO user = (UserDTO) obj.getObject();
+                                resetStatic();
+                                content.removeAll();
+                                EditUserPanel.currentUser = user;
+                                JPanel p1 = new EditUserPanel();
                                 p1.setSize(720,600);
                                 content.add(p1);
                                 content.repaint();
@@ -629,8 +637,11 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
 
     private void exitBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_exitBtnMouseClicked
         // TODO add your handling code here:
-        
-        logOut();
+        if (JOptionPane.showConfirmDialog(this, "Đăng xuất?", "WARNING",
+        JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) 
+        {
+             logOut();
+        } 
     }//GEN-LAST:event_exitBtnMouseClicked
 
     /**
@@ -731,14 +742,6 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         ObjectSend ob;
         switch(i)
         {
-            case 0: //trnag chu           
-                content.removeAll();               
-                p1 = new Home();
-                p1.setSize(720,600);
-                content.add(p1);
-                content.repaint();
-                content.revalidate();
-                break;
             case 1: //chat                          
                 ob = new ObjectSend("get_friend_list", userEmail);
                 write(ob);                
@@ -748,14 +751,9 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                 ob = new ObjectSend("get_group_list", userEmail);
                 write(ob);                
                 break;
-            case 3:  // cai dat    
-                content.removeAll();
-                p1 = new JPanel();
-                p1.setSize(720,600);
-                p1.setBackground(Color.green);
-                content.add(p1);
-                content.repaint();
-                content.revalidate();
+            case 3:  // sua thong tin    
+                ob = new ObjectSend("get_edit_user_info", userEmail);
+                write(ob);                
                 break;
             case 4:  // danh sach block 
                 ob = new ObjectSend("get_block_list", userEmail);
@@ -771,57 +769,5 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
     public void setUserEmail(String userEmail) {
         this.userEmail = userEmail;
     }
-    class deleteAlert extends AbstractCellEditor implements TableCellRenderer,TableCellEditor,ActionListener{
-    JButton addbtn;
-    Icon addIcon = new ImageIcon(this.getClass().getResource("/img/icons8-close-window-20.png"));
-    public deleteAlert(){
-        addbtn = new JButton();
-        addbtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        addbtn.setIcon(addIcon);
-        addbtn.addActionListener(new ActionListener(){
-            @Override
-            public void actionPerformed(ActionEvent e){
-                try
-                {
-                    stopCellEditing();
-                    
-                    
-                    stopCellEditing();
-                } catch(Exception err) {
-                    System.out.println(err);}
-            }
-        });
-    }
 
-    @Override
-    public Object getCellEditorValue() {
-        return null;
-    }
-    
-    @Override 
-    public boolean stopCellEditing(){
-        return super.stopCellEditing();
-    }
-    
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        if (value instanceof Icon) addbtn.setIcon((Icon)value);
-        return addbtn;
-    }
-
-    @Override
-    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        if(value instanceof Icon) addbtn.setIcon((Icon)value);
-        return addbtn;
-    }
-    
-    @Override
-    protected void fireEditingStopped(){
-        super.fireEditingStopped();
-    }
-    
-    @Override
-    public void actionPerformed(ActionEvent e) {
-    }
-}
 }

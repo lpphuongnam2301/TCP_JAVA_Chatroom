@@ -58,6 +58,15 @@ public class UserDTO implements Serializable {
             this.user_status = "ON";
         } else { this.user_status = "OFF"; }
     }
+
+    public UserDTO(String user_email, String user_name, String user_birthday, String user_phone, String user_gender) {
+        this.user_email = user_email;
+        this.user_name = user_name;
+        this.user_birthday = user_birthday;
+        this.user_phone = user_phone;
+        this.user_gender = user_gender;
+    }
+    
     public String getUser_email() {
         return user_email;
     }

@@ -482,6 +482,17 @@ public class ServerDAL {
             e.printStackTrace();
         }
     }
+    public void updateUserInfo(UserDTO user)
+    {
+        try
+        {            
+            String query = "UPDATE `user` SET `user_name`='"+user.getUser_name()+"',`user_birthday`='"+user.getUser_birthday()+"',`user_phone`='"+user.getUser_phone()+"',`user_gender`='"+user.getUser_gender()+"' WHERE user_email = '"+user.getUser_email()+"'";
+            con.executeUpdate(query);
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
     public void addGroupMember(String user_email, String group_id, String time)
     {
         try
