@@ -82,7 +82,6 @@ public class ChatPanel extends javax.swing.JPanel implements MouseListener{
         jScrollPane1 = new javax.swing.JScrollPane();
         friendPanel = new javax.swing.JPanel();
         chatPanel = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
         jPanel1.setPreferredSize(new java.awt.Dimension(720, 600));
@@ -123,19 +122,17 @@ public class ChatPanel extends javax.swing.JPanel implements MouseListener{
 
         jPanel1.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 600));
 
-        chatPanel.setBackground(new java.awt.Color(0, 102, 153));
-
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/334.jpg"))); // NOI18N
+        chatPanel.setBackground(new java.awt.Color(204, 255, 255));
 
         javax.swing.GroupLayout chatPanelLayout = new javax.swing.GroupLayout(chatPanel);
         chatPanel.setLayout(chatPanelLayout);
         chatPanelLayout.setHorizontalGroup(
             chatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 500, Short.MAX_VALUE)
+            .addGap(0, 500, Short.MAX_VALUE)
         );
         chatPanelLayout.setVerticalGroup(
             chatPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 600, Short.MAX_VALUE)
+            .addGap(0, 600, Short.MAX_VALUE)
         );
 
         jPanel1.add(chatPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 0, 500, 600));
@@ -156,7 +153,6 @@ public class ChatPanel extends javax.swing.JPanel implements MouseListener{
     // Variables declaration - do not modify//GEN-BEGIN:variables
     public static javax.swing.JPanel chatPanel;
     private javax.swing.JPanel friendPanel;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;

@@ -6,6 +6,8 @@
 package client;
 
 import com.toedter.calendar.JTextFieldDateEditor;
+import java.math.BigInteger;
+import java.security.MessageDigest;
 import java.util.Date;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -55,7 +57,9 @@ public class EditUserPanel extends javax.swing.JPanel {
     }
     public void changePass()
     {
-        String mkcu = mkcuTxt.getText();//change to md5
+        try
+        {
+        String mkcu = md5(mkcuTxt.getText());//change to md5
         if(mkcuTxt.getText().equals(""))
         {
             mkErr.setText("Chưa nhập mật khẩu cũ");
@@ -66,18 +70,21 @@ public class EditUserPanel extends javax.swing.JPanel {
         else if (!mkcu.equals(currentUser.getUser_password())) {
             mkErr.setText("Mật khẩu cũ không đúng");
         } else {
-            //
+            ObjectSend obj = new ObjectSend("edit_user_pass", OverrallFrame.userEmail, md5(mkmoiTxt.getText()));
+            OverrallFrame.write(obj);
+            JOptionPane.showMessageDialog(this, "Đổi mật khẩu thành công! Vui lòng đăng nhập lại!");
             mkErr.setText("");
+            OverrallFrame.logoutBtn.doClick();
+        }
+        } catch (Exception e)
+        {
+            e.printStackTrace();
         }
     }
     public boolean check()
     {
         boolean check = true;
-        if(tenTxt.getText().equals(""))
-        {
-            tenErr.setText("Chưa nhập tên");
-            check = false;
-        } else if(tenTxt.getText().length() > 20)
+        if(tenTxt.getText().length() > 20)
         {
             tenErr.setText("Tên không được vượt quá 20 kí tự");
             check = false;
@@ -85,32 +92,39 @@ public class EditUserPanel extends javax.swing.JPanel {
             tenErr.setText("");
         }
         //---------------------------------
-        if(sdtTxt.getText().equals(""))
+        if(!sdtTxt.getText().equals(""))
         {
-            sdtErr.setText("Chưa nhập số điện thoại");
-            check = false;
-        } else if(sdtTxt.getText().length() != 10 || sdtTxt.getText().charAt(0) != '0') {
-            sdtErr.setText("Không đúng định dạng SĐT");
-            check = false;
-        } else {
-            sdtErr.setText("");
+            if (sdtTxt.getText().length() != 10 || sdtTxt.getText().charAt(0) != '0') 
+            {
+                sdtErr.setText("Không đúng định dạng SĐT");
+                check = false;
+            } else {
+                sdtErr.setText("");
+            }
         }
-
         //---------------------------------
         Date today = new Date();
-        if(ngaysinhTxt.getText().equals(""))
+        if(!ngaysinhTxt.getText().equals(""))
         {
-            ngaysinhErr.setText("Chưa chọn ngày sinh");
-            check = false;
-        } else if(dateTxt.getDate().after(today)) {
-            ngaysinhErr.setText("Ngày sinh không hợp lý");
-            check = false;
-        } else {
-            ngaysinhErr.setText("");
+            if (dateTxt.getDate().after(today)) {
+                ngaysinhErr.setText("Ngày sinh không hợp lý");
+                check = false;
+            } else {
+                ngaysinhErr.setText("");
+            }
         }
         return check;
     }
-    
+    public String md5(String msg) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] mdByte = md.digest(msg.getBytes());
+        BigInteger no = new BigInteger(1, mdByte);
+        String hashtext = no.toString(16);
+        while (hashtext.length() < 32) {
+            hashtext = "0" + hashtext;
+        }
+        return hashtext;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

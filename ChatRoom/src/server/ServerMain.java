@@ -4,30 +4,80 @@
  */
 package server;
 
+import client.FormatTable;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.math.BigInteger;
+import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+import java.util.Timer;
+import java.util.TimerTask;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
+import temp.ObjectSend;
 
 /**
  *
  * @author lpphu
  */
 public class ServerMain extends javax.swing.JFrame {
-    private static ServerSocket server = null;
-    private static Socket socket = null;
+
+    static int totalUser = 0, totalUserOnl = 0;
+    static boolean isStop = false;
+    ServerSocket server;
+    Socket socket;
+    BufferedReader is;
+    BufferedWriter os;
+    int id;
+    List<ServerThread> listTh;
+    static List<User> listUser;
+    ArrayList<String> listSendCode;
+    Timer timer;
+    cipher c = new cipher();
+    Thread sThread;
+
     /**
      * Creates new form ServerMain
      */
-    public ServerMain() {
+    public ServerMain() throws Exception {
         initComponents();
         setLocationRelativeTo(null);
+
     }
 
     /**
@@ -45,7 +95,7 @@ public class ServerMain extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        log = new javax.swing.JTextArea();
         jLabel4 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jTextField2 = new javax.swing.JTextField();
@@ -54,14 +104,15 @@ public class ServerMain extends javax.swing.JFrame {
         jButton3 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
+        totaluseronl = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
+        totaluser = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane3 = new javax.swing.JScrollPane();
         jTextArea2 = new javax.swing.JTextArea();
-        jButton1 = new javax.swing.JButton();
+        broadcast = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -94,13 +145,13 @@ public class ServerMain extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(jTable1);
 
-        jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 247, -1, 330));
+        jPanel1.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 247, 490, 330));
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane2.setViewportView(jTextArea1);
+        log.setColumns(20);
+        log.setRows(5);
+        jScrollPane2.setViewportView(log);
 
-        jPanel1.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 250, 410, 320));
+        jPanel1.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 250, 370, 320));
 
         jLabel4.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
         jLabel4.setForeground(new java.awt.Color(51, 51, 255));
@@ -123,6 +174,11 @@ public class ServerMain extends javax.swing.JFrame {
 
         jButton2.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
         jButton2.setText("Stop");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
         jPanel1.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(790, 30, 70, 30));
 
         jButton3.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
@@ -146,17 +202,17 @@ public class ServerMain extends javax.swing.JFrame {
         jLabel5.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jPanel2.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 220, 40));
 
-        jLabel6.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
-        jLabel6.setText("TỔNG USER ONLINE:");
-        jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 150, 30));
+        totaluseronl.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        totaluseronl.setText("USER ONLINE: 0");
+        jPanel2.add(totaluseronl, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 120, 150, 30));
 
         jLabel8.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
-        jLabel8.setText("STATUS:");
-        jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 70, 30));
+        jLabel8.setText("STATUS: OFF");
+        jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 100, 30));
 
-        jLabel9.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
-        jLabel9.setText("TỔNG USER:");
-        jPanel2.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 80, 170, 30));
+        totaluser.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        totaluser.setText("TỔNG USER: 0");
+        jPanel2.add(totaluser, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 80, 170, 30));
 
         jPanel1.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 220, 180));
 
@@ -164,7 +220,7 @@ public class ServerMain extends javax.swing.JFrame {
         jLabel7.setForeground(new java.awt.Color(51, 51, 255));
         jLabel7.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons8-hand-with-pen-20.png"))); // NOI18N
         jLabel7.setText("LOGS");
-        jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 220, 180, 20));
+        jPanel1.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 220, 180, 20));
 
         jLabel2.setBackground(new java.awt.Color(255, 255, 255));
         jLabel2.setFont(new java.awt.Font("Times New Roman", 1, 18)); // NOI18N
@@ -180,9 +236,25 @@ public class ServerMain extends javax.swing.JFrame {
 
         jPanel1.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(340, 100, 300, 90));
 
-        jButton1.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
-        jButton1.setText("Broadcast");
-        jPanel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 100, -1, 30));
+        broadcast.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        broadcast.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons8-customer-support-20.png"))); // NOI18N
+        broadcast.setText("Broadcast");
+        broadcast.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                broadcastActionPerformed(evt);
+            }
+        });
+        jPanel1.add(broadcast, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 100, -1, 30));
+
+        jButton4.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        jButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons8-do-not-disturb-20.png"))); // NOI18N
+        jButton4.setText("Block");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
+        jPanel1.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 210, 100, 30));
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -226,36 +298,424 @@ public class ServerMain extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        new Thread(new Runnable() {
-            @Override
+
+        sThread = new Thread() {
+            //boolean isStop=false;
+            //super.run();
             public void run() {
                 try {
-            // TODO add your handling code here:      
-            server = new ServerSocket(7777);
-            System.out.println("Ket noi thanh cong");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        try {  
-            while (!server.isClosed()) 
-            {
-                socket = server.accept();
-                ServerThread serverThread = new ServerThread(socket);
-                Thread thread = new Thread(serverThread);
-                thread.start();
+                    loadUserOnl();
+                    jTextField3.setText(Inet4Address.getLocalHost().getHostAddress());
+                    jTextField2.setText("9999");
+                    jLabel8.setText("STATUS: ON");
+                    listTh = new ArrayList<>();
+                    listSendCode = new ArrayList<>();
+                    server = new ServerSocket(9999);
+                    timer = new Timer();
+                    c = new cipher();
+                    while (!isStop) {
+                        System.out.println(isStop);
+                        socket = server.accept();
+                        ServerThread a = new ServerThread(socket, null);
+                        listTh.add(a);
+                        new Thread(a).start();
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                server.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-            }
-        }).start();
+
+        };
+        sThread.start();
     }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+        isStop = true;
+
+        //sThread.s
+        //sThread.i
+        /*try {
+            
+            //server.close();
+            //socket.close();
+        } catch (IOException ex) {
+            Logger.getLogger(ServerMain.class.getName()).log(Level.SEVERE, null, ex);
+        }*/
+
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        // TODO add your handling code here:
+        if (jTable1.getSelectedRow() > -1) {
+            try {
+                MyDBConnection con = new MyDBConnection();
+                String query = "UPDATE `user` SET `user_status`=3 where `user_id`='" + jTable1.getValueAt(jTable1.getSelectedRow(), 0).toString() + "'";
+                con.executeUpdate(query);
+                con.close();
+                for (ServerThread th : listTh) {
+                    if (th.getUsername().equals(jTable1.getValueAt(jTable1.getSelectedRow(), 2).toString())) {
+                        if ((jTable1.getValueAt(jTable1.getSelectedRow(), 3).toString()).equals("Online")) {
+                            th.send("ban");
+                        }
+                        loadUserOnl();
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                //send("login-fail");
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "Chon user can block");
+        }
+    }//GEN-LAST:event_jButton4ActionPerformed
+
+    private void broadcastActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_broadcastActionPerformed
+        // TODO add your handling code here:
+        String mess = jTextArea2.getText();
+        ObjectSend obj = new ObjectSend("server_broadcast", ObjectSend.getCurrentTime() +" - SERVER: "+ mess);
+        Handler.serverThreadBus.sendAll(obj);
+    }//GEN-LAST:event_broadcastActionPerformed
+
+    public static void loadUserOnl() {
+        try
+        {
+        MyDBConnection con = new MyDBConnection();
+        listUser = new ArrayList();
+        try {
+            String query = "select * from user";
+            ResultSet rs = con.executeQuery(query);
+            while (rs.next()) {
+                User user = new User(rs.getString("user_id"), rs.getString("user_password"), rs.getString("user_email"), rs.getString("user_birthday"),
+                        rs.getString("user_phone"), rs.getString("user_gender"), rs.getString("user_createday"), rs.getString("user_name"), rs.getString("user_status"));
+                listUser.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        FormatTable a = new FormatTable();
+        a.formatTablenoIcon(jTable1);
+        String[] header = {"ID", "Name", "Email", "Status"};
+        DefaultTableModel model = new DefaultTableModel(header, 0) {
+            public boolean isCellEditable(int row, int col) {
+                return false;
+            }
+        };
+        jTable1.setSelectionMode(SINGLE_SELECTION);
+        jTable1.setModel(model);
+        totalUser = listUser.size();
+        totaluser.setText("TỔNG USER : " + totalUser);
+        for (User user : listUser) {
+            String status;
+            if (user.getStatus().equals("1")) {
+                status = "Online";
+            } else if (user.getStatus().equals("2")) {
+                status = "Offline";
+            } else {
+                status = "Block";
+            }
+            Object[] data = {user.getId(), user.getName(), user.getEmail(), status};
+            model.addRow(data);
+        }
+        jTable1.getColumnModel().getColumn(0).setPreferredWidth(1);
+        jTable1.getColumnModel().getColumn(1).setPreferredWidth(70);
+        jTable1.getColumnModel().getColumn(2).setPreferredWidth(150);
+        jTable1.getColumnModel().getColumn(3).setPreferredWidth(150);
+        con.close();
+        } catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    class ServerThread implements Runnable {
+
+        private Socket socket;
+        private BufferedReader is;
+        private BufferedWriter os;
+        private boolean isClosed;
+        private String key, msg, username;
+        
+
+        public ServerThread(Socket socket, String username) {
+            this.socket = socket;
+            this.username = username;
+            isClosed = false;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public void setKey(String key) {
+            this.key = key;
+        }
+
+        public Socket getSocket() {
+            return socket;
+        }
+
+        public void setSocket(Socket socket) {
+            this.socket = socket;
+        }
+
+        public BufferedReader getIs() {
+            return is;
+        }
+
+        public void setIs(BufferedReader is) {
+            this.is = is;
+        }
+
+        public BufferedWriter getOs() {
+            return os;
+        }
+
+        public void setOs(BufferedWriter os) {
+            this.os = os;
+        }
+
+        public boolean isIsClosed() {
+            return isClosed;
+        }
+
+        public void setIsClosed(boolean isClosed) {
+            this.isClosed = isClosed;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        @Override
+        public void run() {
+            try {
+                System.out.println("Khời động luông mới thành công" + socket);
+                is = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                os = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                this.key = generateCode(9);
+                send(key);
+                while (!isStop) {
+                    msg = c.decrypt(is.readLine(), key);
+                    String[] temp = msg.split("-");
+                    if (temp[0].equals("login")) {//login
+                        MyDBConnection con = new MyDBConnection();
+                        try {
+                            String query = "SELECT * FROM `user` WHERE user_email='" + temp[1] + "' and user_password='" + md5(temp[2]) + "' and user_status!='3'";
+                            String query2 = "UPDATE `user` SET `user_status`=1 WHERE user_email='" + temp[1] + "'";
+                            con.executeUpdate(query2);
+                            ResultSet rs = con.executeQuery(query);
+                            if (rs.next()) {
+                                send(c.encrypt("login-sucess", key));
+                                //send("login-sucess");
+                                Handler handler = new Handler(socket, temp[1], key);
+                                Thread th = new Thread(handler);
+                                th.start();
+                                System.out.println("ok");
+                                con.close();
+                                updateTotalUserOnl(true);
+                                this.setUsername(temp[1]);
+                                wirteLog(ObjectSend.getCurrentTime() + ": " + temp[1] + " đã login");
+                                loadUserOnl();
+                                break;
+                            }
+                            else {
+                                send(c.encrypt("login-fail", key));
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            
+                            //send("login-fail");
+                        }
+                    } else if (temp[0].equals("signup")) {//signup
+                        if (checkCodeOTP(temp[3], temp[4])) {
+                            try {
+
+                                MyDBConnection con = new MyDBConnection();
+                                String query = "INSERT INTO `user`(`user_email`, `user_password`, `user_name` ,`user_createday`,`user_status`) "
+                                        + "VALUES ('" + temp[3] + "','" + md5(temp[2]) + "','" + temp[1] + "','" + new SimpleDateFormat("yyyy-MM-dd").format(new Date()) + "',0)";
+                                con.executeUpdate(query);
+                                con.close();
+                                removeEmail(temp[3]);
+                                //send("signup-success");
+                                send(c.encrypt("signup-success", key));
+                                wirteLog(ObjectSend.getCurrentTime() + ": " + temp[3] + " đã đăng ký");
+                                updateTotalUser();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            //send("signup-fail");
+                            send(c.encrypt("signup-fail", key));
+                        }
+                    } else if (temp[0].equals("sendcode")) { //code otp
+                        if (!checkEmail(temp[1])) {
+                            if (checkCode(temp[1])) {
+                                //send("send-fail");
+                                send(c.encrypt("send-fail", key));
+                            } else {
+                                Calendar time = Calendar.getInstance();
+                                time.add(Calendar.MINUTE, 10);
+                                String code = generateCode(9);
+                                listSendCode.add(temp[1] + "-" + code);
+                                timer.schedule(new freeEmail(), time.getTime());
+                                //send("send-success");
+                                send(c.encrypt("send-success", key));
+                                new Email().sendMail(temp[1], code);
+                            }
+                        } else {
+                            //send("sendmail-fail");
+                            send(c.encrypt("sendmail-fail", key));
+                        }
+                    } else if (temp[0].equals("logut")) {
+                        updateTotalUserOnl(false);
+                    } else if (msg.equals("backlogin")) {
+                        updateTotalUserOnl(false);
+                        //send("login");
+                        send(c.encrypt("login", key));
+                    }
+                }
+            } catch (IOException e) {
+                isStop = true;
+                ServerMain.updateTotalUserOnl(false);
+                if (this.username != null) {
+                    wirteLog(ObjectSend.getCurrentTime() + ": " + this.username + " đã logout");
+                }
+            }
+        }
+
+        void send(String message) throws IOException {
+            os.write(message);
+            os.newLine();
+            os.flush();
+        }
+
+        void stop() {
+            isClosed = true;
+        }
+    }
+
+    String md5(String msg) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        byte[] mdByte = md.digest(msg.getBytes());
+        BigInteger no = new BigInteger(1, mdByte);
+        String hashtext = no.toString(16);
+        while (hashtext.length() < 32) {
+            hashtext = "0" + hashtext;
+        }
+        return hashtext;
+    }
+
+    boolean checkEmail(String email) {
+        try {
+            MyDBConnection con = new MyDBConnection();
+            String query = "select * from user where user_email='" + email + "'";
+            ResultSet rs = con.executeQuery(query);
+            if (rs.next()) {
+                con.close();
+                return true;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
+    }
+
+    boolean checkCode(String email) {
+        if (listSendCode.size() == 0) {
+            return false;
+        } else {
+            for (String s : listSendCode) {
+                String temp[] = s.split("-");
+                if (temp[0].equals(email)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    boolean checkCodeOTP(String email, String OTP) {
+        if (listSendCode.size() == 0) {
+            return false;
+        } else {
+            for (String s : listSendCode) {
+                String temp[] = s.split("-");
+                if (temp[0].equals(email) && temp[1].equals(OTP)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    String generateCode(int chuso) {
+        String alpha = "abcdefghijklmnopqrstuvwxyz"; // a-z
+        String alphaUpperCase = alpha.toUpperCase(); // A-Z
+        String digits = "0123456789"; // 0-9
+        String ALPHA_NUMERIC = alpha + alphaUpperCase + digits;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < chuso; i++) {
+            int number = randomNumber(0, ALPHA_NUMERIC.length() - 1);
+            char ch = ALPHA_NUMERIC.charAt(number);
+            sb.append(ch);
+        }
+        return sb.toString();
+    }
+
+    static int randomNumber(int min, int max) {
+        return new Random().nextInt((max - min) + 1) + min;
+    }
+
+    class freeEmail extends TimerTask {
+
+        @Override
+        public void run() {
+            listSendCode.remove(0);
+        }
+
+    }
+
+    void removeEmail(String email) {
+        for (String s : listSendCode) {
+            String temp[] = s.split("-");
+            if (temp[0].equals(email)) {
+                listSendCode.remove(s);
+                break;
+            }
+        }
+    }
+
+    public static void wirteLog(String msg) {
+        try {
+            log.setText(log.getText() + msg + "\n");
+            FileWriter fw = new FileWriter("src\\server\\logs.txt", true);
+            fw.write(msg + "\n");
+            fw.close();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
+    void updateTotalUser() {
+        totalUser += 1;
+        totaluser.setText("TỔNG USER: " + totalUser);
+    }
+
+    public static void updateTotalUserOnl(boolean status) {
+        if (status) {
+            totalUserOnl += 1;
+            totaluseronl.setText("USER ONLINE: " + totalUserOnl);
+        } else {
+            totalUserOnl -= 1;
+            totaluseronl.setText("USER ONLINE: " + totalUserOnl);
+        }
+    }
 
     /**
      * @param args the command line arguments
@@ -271,79 +731,65 @@ public class ServerMain extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ServerMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ServerMain.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ServerMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ServerMain.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ServerMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ServerMain.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ServerMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(ServerMain.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
         //</editor-fold>
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Thread(new Runnable() {
-            @Override
-            public void run() {
                 try {
-            // TODO add your handling code here:      
-            server = new ServerSocket(7777);
-            System.out.println("Ket noi thanh cong");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        try {  
-            while (!server.isClosed()) 
-            {
-                socket = server.accept();
-                ServerThread serverThread = new ServerThread(socket);
-                Thread thread = new Thread(serverThread);
-                thread.start();
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                server.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
-            }
-        }).start();
-                new ServerMain().setVisible(true);
+                    new ServerMain().setVisible(true);
+                } catch (Exception ex) {
+                    Logger.getLogger(ServerMain.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton broadcast;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTable jTable1;
-    private javax.swing.JTextArea jTextArea1;
+    public static javax.swing.JTable jTable1;
     private javax.swing.JTextArea jTextArea2;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField3;
+    private static javax.swing.JTextArea log;
+    public static javax.swing.JLabel totaluser;
+    private static javax.swing.JLabel totaluseronl;
     // End of variables declaration//GEN-END:variables
+
 }

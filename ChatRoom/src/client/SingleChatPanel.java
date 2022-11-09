@@ -51,7 +51,6 @@ public class SingleChatPanel extends javax.swing.JPanel implements MouseListener
      */
     public SingleChatPanel() {
         initComponents();
-        
         textPane.setEditable(false);
         textPane.setContentType("text/html");
         appendToPane(textPane, "<div class='clear' style='background-color:white; padding-bottom: 9px;'></div>");

@@ -6,6 +6,8 @@
 
 package client;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import temp.LeftMenu;
 import java.awt.Color;
 import java.awt.Component;
@@ -34,15 +36,20 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import server.cipher;
 import temp.ObjectSend;
 import temp.UserDTO;
+import java.lang.reflect.Type;
+import temp.GroupDTO;
+import temp.GroupMessageDTO;
+import temp.MessageDTO;
 
 /**
  *
  * @author Nam
  */
 public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
-    public static String userEmail = "client@gmail.com";
+    public static String userEmail;
     public static ArrayList<String> userOnline = new ArrayList<>();
     private static ObjectOutputStream out;
     private ObjectInputStream in;
@@ -54,32 +61,12 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
     FormatTable formatTable = new FormatTable();
     DefaultTableModel model = new DefaultTableModel();
     DefaultTableModel modelAlert = new DefaultTableModel();
+    static Gson gson = new Gson();
+    private static String key;
     /**
      * Creates new form OverrallFrame
      */
-//    public OverrallFrame(Socket socket, String userEmail) {
-//        try
-//        {
-//        initComponents();
-//        setSize(1015, 638);
-//        leftmenu();
-//        changeMainInfo(1);
-//        navObj.get(0).doActive();
-//        setLocationRelativeTo(null);
-//        this.socket = socket;
-//        this.out = new ObjectOutputStream(socket.getOutputStream());
-//        this.in = new ObjectInputStream(socket.getInputStream());
-//        this.userEmail = userEmail;
-    //gui server email
-//        out.writeObject(userEmail);
-//        out.flush();
-//        listen();
-//        } catch (IOException e)
-//        {
-//            e.printStackTrace();
-//        }
-//    }
-    public OverrallFrame() {
+    public OverrallFrame(Socket socket, String key) {
         try
         {
         initComponents();
@@ -88,13 +75,11 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         alertTableFormat();
         userTableFormat();
         setLocationRelativeTo(null);
-        this.socket = new Socket("localhost", 7777);
+        this.socket = socket;
+        this.key = key;
         this.out = new ObjectOutputStream(socket.getOutputStream());
         this.in = new ObjectInputStream(socket.getInputStream());
-        
-        //gui server email
-        out.writeObject(userEmail);
-        out.flush();        
+               
         listen();
         navObj.get(0).doActive();
         changeMainInfo(1);
@@ -108,7 +93,6 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
     
     public void logOut()
     {
-
         ObjectSend obj = new ObjectSend("log_out", userEmail);
         write(obj);
         close(socket, in, out);
@@ -229,12 +213,15 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                     try {
                         while (socket.isConnected()) 
                         {
-                            ObjectSend obj = (ObjectSend) in.readObject();
+                            String decrypStr = cipher.decrypt(in.readObject().toString(), key);
+                            ObjectSend obj = gson.fromJson(decrypStr , ObjectSend.class);
+
                             if (obj.getTag().equals("send_online_list")) 
                             {
                                 loadAlertTable(obj.getObject().toString());
                                 System.out.println(obj.getObject());
-                                ChatPanel.arrayUser = obj.getArr();
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<UserDTO>>() {}.getType();
+                                ChatPanel.arrayUser = gson.fromJson(gson.toJson(obj.getArr()), listType);
                                 content.removeAll();
                                 JPanel p1 = new ChatPanel();
                                 p1.setSize(720,600);
@@ -249,12 +236,16 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             } 
                             if (obj.getTag().equals("user_online_in_server")) 
                             {
-                                userOnline = obj.getArr();
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<String>>() {}.getType();
+                                userOnline = gson.fromJson(gson.toJson(obj.getArr()), listType);
                                 loadUserTable();
                             } 
                             if(obj.getTag().equals("get_friend_list"))
                             {
-                                ChatPanel.arrayUser = obj.getArr();
+
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<UserDTO>>() {}.getType();
+                                ChatPanel.arrayUser = gson.fromJson(gson.toJson(obj.getArr()), listType);
+
                                 resetStatic();
                                 content.removeAll();
                                 JPanel p1 = new ChatPanel();
@@ -265,7 +256,8 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             }
                             if (obj.getTag().equals("get_chat_panel")) 
                             {
-                                SingleChatPanel.arrMess = obj.getArr();
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<MessageDTO>>() {}.getType();
+                                SingleChatPanel.arrMess = gson.fromJson(gson.toJson(obj.getArr()), listType);
                                 String userEmail = (String) obj.getObjectTemp();
                                 String userName =(String) obj.getObject();
                                 SingleChatPanel.currentEmail = userEmail;
@@ -278,7 +270,8 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             }
                             if (obj.getTag().equals("get_block_user_chat_panel")) 
                             {
-                                UserBlockChatPanel.arrMess = obj.getArr();
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<MessageDTO>>() {}.getType();
+                                UserBlockChatPanel.arrMess = gson.fromJson(gson.toJson(obj.getArr()), listType);
                                 String userEmail = (String) obj.getObjectTemp();
                                 String userName =(String) obj.getObject();
                                 UserBlockChatPanel.currentEmail = userEmail;
@@ -287,7 +280,9 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             }
                             if (obj.getTag().equals("get_block_group_chat_panel")) 
                             {
-                                GroupBlockChatPanel.arrMess = obj.getArr();
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<GroupMessageDTO>>() {}.getType();
+                                GroupBlockChatPanel.arrMess = gson.fromJson(gson.toJson(obj.getArr()), listType);
+
                                 GroupBlockChatPanel.currentGroupId = (String)obj.getObject();
                                 GroupBlockChatPanel.currentGroupName =  (String)obj.getObjectTemp();
                                 BlockPanel.loadChatGroup();
@@ -295,8 +290,11 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             if(obj.getTag().equals("get_chat_panel_update"))
                             {
                                 resetStatic();
-                                ChatPanel.arrayUser = obj.getArrTemp();
-                                SingleChatPanel.arrMess = obj.getArr();
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<MessageDTO>>() {}.getType();
+                                SingleChatPanel.arrMess = gson.fromJson(gson.toJson(obj.getArr()), listType);
+                                java.lang.reflect.Type listType1 = new TypeToken<ArrayList<UserDTO>>() {}.getType();
+                                ChatPanel.arrayUser = gson.fromJson(gson.toJson(obj.getArrTemp()), listType1);
+                                
                                 String userEmail = (String) obj.getObjectTemp();
                                 String userName =(String) obj.getObject();
                                 SingleChatPanel.currentEmail = userEmail;
@@ -312,7 +310,8 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             }
                             if(obj.getTag().equals("get_group_list"))
                             {
-                                GroupPanel.arrayGroup = obj.getArr();
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<GroupDTO>>() {}.getType();
+                                GroupPanel.arrayGroup = gson.fromJson(gson.toJson(obj.getArr()), listType);
                                 resetStatic();
                                 content.removeAll();
                                 JPanel p1 = new GroupPanel();
@@ -323,7 +322,9 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             }
                             if (obj.getTag().equals("get_group_chat_panel")) 
                             {
-                                GroupChatPanel.arrMess = obj.getArr();
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<GroupMessageDTO>>() {}.getType();
+                                GroupChatPanel.arrMess = gson.fromJson(gson.toJson(obj.getArr()), listType);
+
                                 GroupChatPanel.currentGroupId = (String)obj.getObject();
                                 GroupChatPanel.currentGroupName =  (String)obj.getObjectTemp();
                                 GroupPanel.loadChat();
@@ -331,8 +332,11 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             if (obj.getTag().equals("get_group_chat_panel_update")) 
                             {
                                 resetStatic();
-                                GroupPanel.arrayGroup = obj.getArr();
-                                GroupChatPanel.arrMess = obj.getArrTemp();
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<GroupDTO>>() {}.getType();
+                                GroupPanel.arrayGroup = gson.fromJson(gson.toJson(obj.getArr()), listType);
+                                java.lang.reflect.Type listType1 = new TypeToken<ArrayList<GroupMessageDTO>>() {}.getType();
+                                GroupChatPanel.arrMess = gson.fromJson(gson.toJson(obj.getArrTemp()), listType1);
+
                                 GroupChatPanel.currentGroupId = (String)obj.getObject();
                                 GroupChatPanel.currentGroupName =  (String)obj.getObjectTemp();
                                 
@@ -349,7 +353,9 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                                 String senderEmail = (String) obj.getObjectTemp();
                                 if(SingleChatPanel.currentEmail.equals(senderEmail))
                                 {
-                                    SingleChatPanel.arrMess = obj.getArr();
+                                    java.lang.reflect.Type listType1 = new TypeToken<ArrayList<MessageDTO>>() {}.getType();
+                                    SingleChatPanel.arrMess = gson.fromJson(gson.toJson(obj.getArr()), listType1);
+
                                     ChatPanel.loadChat();
                                 } else {
                                     //alert
@@ -361,7 +367,8 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                                 String groupId = (String) obj.getObjectTemp();
                                 if(GroupChatPanel.currentGroupId.equals(groupId))
                                 {
-                                    GroupChatPanel.arrMess = obj.getArr();
+                                    java.lang.reflect.Type listType1 = new TypeToken<ArrayList<GroupMessageDTO>>() {}.getType();
+                                    GroupChatPanel.arrMess = gson.fromJson(gson.toJson(obj.getArr()), listType1);
                                     GroupPanel.loadChat();
                                 } else {
                                     //alert
@@ -393,23 +400,27 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                                 loadAlertTable(obj.getObject().toString());
                             }
                             if (obj.getTag().equals("get_file_mess_list")) 
-                            {                
-                                UserFileDownDialog.arrMess = obj.getArr();
+                            {          
+                                java.lang.reflect.Type listType1 = new TypeToken<ArrayList<MessageDTO>>() {}.getType();
+                                UserFileDownDialog.arrMess = gson.fromJson(gson.toJson(obj.getArr()), listType1);
                                 UserFileDownDialog nam = new UserFileDownDialog();
                                 nam.setVisible(true);
                                 nam.setLocationRelativeTo(content);
                             }
                             if (obj.getTag().equals("get_file_group_mess_list")) 
                             {                
-                                GroupFileDownDialog.arrMess = obj.getArr();
+                                java.lang.reflect.Type listType1 = new TypeToken<ArrayList<GroupMessageDTO>>() {}.getType();
+                                GroupFileDownDialog.arrMess = gson.fromJson(gson.toJson(obj.getArr()), listType1);
                                 GroupFileDownDialog nam = new GroupFileDownDialog();
                                 nam.setVisible(true);
                                 nam.setLocationRelativeTo(content);
                             }
                             if (obj.getTag().equals("get_edit_group_info")) 
                             {      
-                                EditGroupDialog.arrFriend = obj.getArrTemp();
-                                EditGroupDialog.arrMember = obj.getArr();
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<UserDTO>>() {}.getType();
+                                EditGroupDialog.arrMember = gson.fromJson(gson.toJson(obj.getArr()), listType);
+                                EditGroupDialog.arrFriend = gson.fromJson(gson.toJson(obj.getArrTemp()), listType);
+
                                 EditGroupDialog.groupName = (String) obj.getObject();
                                 EditGroupDialog nam = new EditGroupDialog();
                                 nam.setVisible(true);
@@ -417,8 +428,11 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             }
                             if(obj.getTag().equals("get_block_list"))
                             {
-                                BlockPanel.arrayUser = obj.getArr();
-                                BlockPanel.arrayGroup = obj.getArrTemp();
+                                java.lang.reflect.Type listType = new TypeToken<ArrayList<UserDTO>>() {}.getType();
+                                BlockPanel.arrayUser = gson.fromJson(gson.toJson(obj.getArr()), listType);
+                                java.lang.reflect.Type listType1 = new TypeToken<ArrayList<GroupDTO>>() {}.getType();
+                                BlockPanel.arrayGroup = gson.fromJson(gson.toJson(obj.getArrTemp()), listType1);
+
                                 resetStatic();
                                 content.removeAll();
                                 JPanel p1 = new BlockPanel();
@@ -429,7 +443,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             }
                             if(obj.getTag().equals("get_edit_user_info"))
                             {
-                                UserDTO user = (UserDTO) obj.getObject();
+                                UserDTO user = gson.fromJson( gson.toJson(obj.getObject()), UserDTO.class);
                                 resetStatic();
                                 content.removeAll();
                                 EditUserPanel.currentUser = user;
@@ -438,6 +452,10 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                                 content.add(p1);
                                 content.repaint();
                                 content.revalidate();
+                            }
+                            if (obj.getTag().equals("server_broadcast")) 
+                            {
+                                loadAlertTable(obj.getObject().toString());
                             }
                         }
                     } catch (Exception e) {
@@ -457,7 +475,10 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
     public static void write(ObjectSend object)
     {
         try {
-            out.writeObject(object);
+            String json = gson.toJson(object);
+            String obj = cipher.encrypt(json, key);
+            
+            out.writeObject(obj);
             out.flush();
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -506,7 +527,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         jScrollPane1 = new javax.swing.JScrollPane();
         userTable = new javax.swing.JTable();
         jPanel3 = new javax.swing.JPanel();
-        exitBtn = new javax.swing.JLabel();
+        logoutBtn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -605,17 +626,14 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         jPanel3.setBackground(new java.awt.Color(51, 204, 255));
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        exitBtn.setBackground(new java.awt.Color(255, 255, 255));
-        exitBtn.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        exitBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons8-exit-20.png"))); // NOI18N
-        exitBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        exitBtn.setOpaque(true);
-        exitBtn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                exitBtnMouseClicked(evt);
+        logoutBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/icons8-exit1-20.png"))); // NOI18N
+        logoutBtn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        logoutBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                logoutBtnActionPerformed(evt);
             }
         });
-        jPanel3.add(exitBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 60, 60));
+        jPanel3.add(logoutBtn, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 60, 60));
 
         jPanel2.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 60, 190));
 
@@ -635,58 +653,53 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void exitBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_exitBtnMouseClicked
+    private void logoutBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutBtnActionPerformed
         // TODO add your handling code here:
-        if (JOptionPane.showConfirmDialog(this, "Đăng xuất?", "WARNING",
-        JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) 
-        {
-             logOut();
-        } 
-    }//GEN-LAST:event_exitBtnMouseClicked
+        logOut();
+    }//GEN-LAST:event_logoutBtnActionPerformed
 
     /**
      * @param args the command line arguments
      */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(OverrallFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(OverrallFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(OverrallFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(OverrallFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new OverrallFrame().setVisible(true);
-            }
-        });
-    }
+//    public static void main(String args[]) {
+//        /* Set the Nimbus look and feel */
+//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+//         */
+//        try {
+//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+//                if ("Nimbus".equals(info.getName())) {
+//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+//                    break;
+//                }
+//            }
+//        } catch (ClassNotFoundException ex) {
+//            java.util.logging.Logger.getLogger(OverrallFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (InstantiationException ex) {
+//            java.util.logging.Logger.getLogger(OverrallFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (IllegalAccessException ex) {
+//            java.util.logging.Logger.getLogger(OverrallFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+//            java.util.logging.Logger.getLogger(OverrallFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+//        }
+//        //</editor-fold>
+//        //</editor-fold>
+//        //</editor-fold>
+//        //</editor-fold>
+//
+//        /* Create and display the form */
+//        java.awt.EventQueue.invokeLater(new Runnable() {
+//            public void run() {
+//                new OverrallFrame().setVisible(true);
+//            }
+//        });
+//    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel LeftPanel;
     private javax.swing.JTable alertTable;
     public static javax.swing.JPanel content;
-    private javax.swing.JLabel exitBtn;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
@@ -696,6 +709,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
     private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    public static javax.swing.JButton logoutBtn;
     private javax.swing.JTable userTable;
     // End of variables declaration//GEN-END:variables
 
@@ -738,7 +752,6 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
     
     private void changeMainInfo(int i)
     {
-        JPanel p1;
         ObjectSend ob;
         switch(i)
         {

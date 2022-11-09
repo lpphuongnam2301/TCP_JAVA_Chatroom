@@ -40,7 +40,6 @@ public class GroupChatPanel extends javax.swing.JPanel implements MouseListener{
      */
     public GroupChatPanel() {
         initComponents();
-        
         textPane.setEditable(false);
         textPane.setContentType("text/html");
         appendToPane(textPane, "<div class='clear' style='background-color:white; padding-bottom: 7px;'></div>");

@@ -493,6 +493,17 @@ public class ServerDAL {
             e.printStackTrace();
         }
     }
+    public void updatePassUser(String pass, String userEmail)
+    {
+        try
+        {            
+            String query = "UPDATE `user` SET `user_password`='"+pass+"' WHERE user_email = '"+userEmail+"'";
+            con.executeUpdate(query);
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
     public void addGroupMember(String user_email, String group_id, String time)
     {
         try
