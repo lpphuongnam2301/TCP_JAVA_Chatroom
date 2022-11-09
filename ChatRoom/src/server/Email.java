@@ -14,7 +14,7 @@ import java.util.Properties;
  */
 public class Email {
     
-    public void sendMail(String receiver,String content){
+    public void sendMail(String receiver, String content){
         final String username = "chatapp9999@gmail.com";
         final String password = "uxnfgkvtlshabbao";
 
@@ -40,19 +40,16 @@ public class Email {
                     Message.RecipientType.TO,
                     InternetAddress.parse(receiver)
             );
-            message.setSubject("Ma OTP kich hoat tai khoan");
-            message.setText("Ma OTP cua ban la: "+content+" \nLuu y: Ma nay co hieu luc trong vong 10 phut");
+            message.setSubject("Mã OTP kích hoạt tài khoản chat");
+            message.setText("Mã OTP của bạn là: "+content+" \nLưu ý: Mã này chỉ có hiệu lực trong 10 phút!!!");
 
             Transport.send(message);
 
-            System.out.println("Sent email to: "+receiver);
+            System.out.println("Send email to: "+receiver);
 
         } catch (MessagingException e) {
             e.printStackTrace();
         }
-    }
-    public static void main(String[] args) {
-        new Email().sendMail("nngiabao6@gmail.com","hello");
     }
    
     }

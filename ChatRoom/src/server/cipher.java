@@ -54,15 +54,4 @@ public class cipher {
       return null;
     }
     
-    public static void main(String[] args) {
-      String secretKey = "fwafw561565";
-      String originalString = "teamvietdev.com";
-
-      cipher testAES = new cipher();
-      String encryptedString = testAES.encrypt(originalString, secretKey);
-      System.out.println("Encrypt: " + encryptedString);
-      String decryptedString = testAES.decrypt(encryptedString, secretKey);
-      System.out.println("Decrypt: " + decryptedString);
-      
-}
 }

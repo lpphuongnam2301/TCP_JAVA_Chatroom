@@ -366,19 +366,19 @@ public class RegisterForm extends javax.swing.JFrame {
         String repass = String.valueOf(repasstxt.getPassword());
         String code = codetxt.getText();
         if (user.equals("")) {
-            JOptionPane.showMessageDialog(this, "Chua nhap name");
+            JOptionPane.showMessageDialog(this, "Chưa nhập tên");
         } else if (pass.equals("")) {
-            JOptionPane.showMessageDialog(this, "Chua nhap password");
+            JOptionPane.showMessageDialog(this, "Chưa nhập mật khẩu");
         } else if (email.equals("")) {
-            JOptionPane.showMessageDialog(this, "Chua nhap email");
+            JOptionPane.showMessageDialog(this, "Chưa nhập email");
         } else if (repass.equals("")) {
-            JOptionPane.showMessageDialog(this, "Chua nhap repassword");
+            JOptionPane.showMessageDialog(this, "Chưa nhập repassword");
         } else if (code.equals("")) {
-            JOptionPane.showMessageDialog(this, "Chua nhap ma OTP");
+            JOptionPane.showMessageDialog(this, "Chưa nhập mã OTP");
         } else if (!pass.equals(repass)) {
-            JOptionPane.showMessageDialog(this, "Repass khong hop le");
+            JOptionPane.showMessageDialog(this, "Repass không hợp lệ");
         } else if (!patternMatches(email,emailsRegex)) {
-            JOptionPane.showMessageDialog(this, "Dinh dang email khong hop le");
+            JOptionPane.showMessageDialog(this, "Định dạng email không hợp lệ");
         }else {
             try {
                 cipher c = new cipher();
@@ -430,7 +430,7 @@ public class RegisterForm extends javax.swing.JFrame {
         try {
             String s = emailtxt.getText();
             if (s.equals("")) {
-                notify("Chua nhap email");
+                notify("Chưa nhập email");
             } else {
                 send("sendcode-" + emailtxt.getText());
             }

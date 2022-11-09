@@ -27,7 +27,7 @@ import temp.UserDTO;
 
 /**
  *
- * @author Admin
+ * @author lpphu
  */
 public class Handler implements Runnable {
     public static volatile HandlerBus serverThreadBus = new HandlerBus();;
@@ -218,7 +218,8 @@ public class Handler implements Runnable {
                             ObjectSend objSend = new ObjectSend(arr,arrFriend,"get_chat_panel_update", username, friend);
                             write(objSend);
                         } else {
-                            System.out.println("bi block");
+                            ObjectSend objSend = new ObjectSend("this_is_block_user");
+                            write(objSend);
                         }
                     }              
                 }

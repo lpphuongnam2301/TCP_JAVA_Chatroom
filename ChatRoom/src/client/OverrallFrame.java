@@ -63,6 +63,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
     DefaultTableModel modelAlert = new DefaultTableModel();
     static Gson gson = new Gson();
     private static String key;
+    private int i;
     /**
      * Creates new form OverrallFrame
      */
@@ -220,6 +221,8 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             {
                                 loadAlertTable(obj.getObject().toString());
                                 System.out.println(obj.getObject());
+                                if(i == 1)
+                                {
                                 java.lang.reflect.Type listType = new TypeToken<ArrayList<UserDTO>>() {}.getType();
                                 ChatPanel.arrayUser = gson.fromJson(gson.toJson(obj.getArr()), listType);
                                 content.removeAll();
@@ -232,7 +235,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                                 {
                                     ChatPanel.loadChat();
                                 }
-                                
+                                }
                             } 
                             if (obj.getTag().equals("user_online_in_server")) 
                             {
@@ -456,6 +459,10 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             if (obj.getTag().equals("server_broadcast")) 
                             {
                                 loadAlertTable(obj.getObject().toString());
+                            }
+                            if (obj.getTag().equals("this_is_block_user")) 
+                            {
+                                JOptionPane.showMessageDialog(content, "Bạn đã block user này!");
                             }
                         }
                     } catch (Exception e) {
@@ -755,20 +762,24 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         ObjectSend ob;
         switch(i)
         {
-            case 1: //chat                          
+            case 1: //chat   
+                this.i = 1;
                 ob = new ObjectSend("get_friend_list", userEmail);
                 write(ob);                
                 break;
             case 2:  // chat group     
-                //content.removeAll();               
+                //content.removeAll();  
+                this.i = 2;
                 ob = new ObjectSend("get_group_list", userEmail);
                 write(ob);                
                 break;
             case 3:  // sua thong tin    
+                this.i = 3;
                 ob = new ObjectSend("get_edit_user_info", userEmail);
                 write(ob);                
                 break;
             case 4:  // danh sach block 
+                this.i = 4;
                 ob = new ObjectSend("get_block_list", userEmail);
                 write(ob);                
                 break;

@@ -367,7 +367,7 @@ public class ServerMain extends javax.swing.JFrame {
                 //send("login-fail");
             }
         } else {
-            JOptionPane.showMessageDialog(null, "Chon user can block");
+            JOptionPane.showMessageDialog(this, "Chon user can block");
         }
     }//GEN-LAST:event_jButton4ActionPerformed
 

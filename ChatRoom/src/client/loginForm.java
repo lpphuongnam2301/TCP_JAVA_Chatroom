@@ -224,8 +224,8 @@ public class loginForm extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(body, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(body, javax.swing.GroupLayout.PREFERRED_SIZE, 268, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -259,16 +259,16 @@ public class loginForm extends javax.swing.JFrame {
                                 System.out.println("Tài khoản hoặc mật khẩu không chính xác");
                                 jLabel4.setVisible(true);
                             } else if (msg.equals("signup-fail")) {
-                                regF.notify("Ma OTP sai");
+                                regF.notify("Mã OTP sai");
                             } else if (msg.equals("signup-success")) {
                                 regF.setVisible(false);
                                 setVisible(true);
                             } else if (msg.equals("send-success")) {
-                                regF.notify("Gui ma OTP qua email thanh cong");
+                                regF.notify("Gửi mã OTP qua email thành công");
                             } else if (msg.equals("send-fail")) {
-                                regF.notify("Ma OTP da gui qua email co hieu luc 10 phut");
+                                regF.notify("Mã OTP đã gửi qua email có hiệu lực 10 phút");
                             } else if (msg.equals("sendmail-fail")) {
-                                regF.notify("Email da dang ky");
+                                regF.notify("Email đã được đăng ký");
                             } else if (msg.equals("ban")) {
 //                                client.setVisible(false);
                                 setVisible(true);
@@ -311,9 +311,9 @@ public class loginForm extends javax.swing.JFrame {
         String user = jTextFieldUsername1.getText();
         String pass = String.valueOf(jPasswordField2.getPassword());
         if (user.equals("")) {
-            JOptionPane.showMessageDialog(this, "Chua nhap username");
+            JOptionPane.showMessageDialog(this, "Chưa nhập username");
         } else if (pass.equals("")) {
-            JOptionPane.showMessageDialog(this, "Chua nhap pass word");
+            JOptionPane.showMessageDialog(this, "Chưa nhập password");
         } else {
             try {
                 send("login-" + user + "-" + pass);
