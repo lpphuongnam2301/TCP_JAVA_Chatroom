@@ -511,6 +511,11 @@ public class ServerMain extends javax.swing.JFrame {
                             con.executeUpdate(query2);
                             ResultSet rs = con.executeQuery(query);
                             if (rs.next()) {
+                                if(checkExistEmail(temp[1]))
+                                {
+                                    ObjectSend obj = new ObjectSend("login_duplicate");
+                                    Handler.serverThreadBus.sendOneUser(obj, temp[1]);
+                                }
                                 send(c.encrypt("login-sucess", key));
                                 //send("login-sucess");
                                 Handler handler = new Handler(socket, temp[1], key);
@@ -523,6 +528,7 @@ public class ServerMain extends javax.swing.JFrame {
                                 wirteLog(ObjectSend.getCurrentTime() + ": " + temp[1] + " đã login");
                                 loadUserOnl();
                                 break;
+
                             }
                             else {
                                 send(c.encrypt("login-fail", key));
@@ -610,7 +616,20 @@ public class ServerMain extends javax.swing.JFrame {
         }
         return hashtext;
     }
-
+    public boolean checkExistEmail(String email)
+    {
+        boolean check = false;
+        ArrayList<String> arr = Handler.serverThreadBus.getEmailList();
+        for(String mail : arr)
+        {
+            if(mail.equals(email))
+            {
+                check = true;
+                break;
+            }
+        }
+        return check;
+    }
     boolean checkEmail(String email) {
         try {
             MyDBConnection con = new MyDBConnection();

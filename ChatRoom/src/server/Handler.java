@@ -19,6 +19,7 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static server.ServerMain.wirteLog;
 import temp.GroupDTO;
 import temp.GroupMessageDTO;
 import temp.MessageDTO;
@@ -413,7 +414,7 @@ public class Handler implements Runnable {
             {
                 close(socket, in, out);
                 ex.printStackTrace();
-            } 
+            }
         }
     }
     public void write(ObjectSend object) throws IOException

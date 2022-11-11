@@ -18,6 +18,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -76,6 +79,16 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         alertTableFormat();
         userTableFormat();
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+            WindowListener exitListener = new WindowAdapter() {
+
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    logOut();
+                }
+            };
+            addWindowListener(exitListener);
+        
         this.socket = socket;
         this.key = key;
         this.out = new ObjectOutputStream(socket.getOutputStream());
@@ -463,6 +476,12 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             if (obj.getTag().equals("this_is_block_user")) 
                             {
                                 JOptionPane.showMessageDialog(content, "Bạn đã block user này!");
+                            }
+                            if (obj.getTag().equals("login_duplicate")) 
+                            {
+                                JOptionPane.showMessageDialog(content, "Tài khoản này được đăng nhập ở nơi khác");
+                                logOut();
+                                dispose();
                             }
                         }
                     } catch (Exception e) {
