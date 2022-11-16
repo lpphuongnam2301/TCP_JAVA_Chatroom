@@ -84,7 +84,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
 
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    logOut();
+                    logOut("ok");
                 }
             };
             addWindowListener(exitListener);
@@ -105,9 +105,9 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
         }
     }
     
-    public void logOut()
+    public void logOut(String status)
     {
-        ObjectSend obj = new ObjectSend("log_out", userEmail);
+        ObjectSend obj = new ObjectSend("log_out", userEmail, status);
         write(obj);
         close(socket, in, out);
         this.dispose();
@@ -480,8 +480,18 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
                             if (obj.getTag().equals("login_duplicate")) 
                             {
                                 JOptionPane.showMessageDialog(content, "Tài khoản này được đăng nhập ở nơi khác");
-                                logOut();
+                                logOut("ok");
                                 dispose();
+//                                loginForm login = new loginForm();
+//                                login.setVisible(true);
+                            }
+                            if (obj.getTag().equals("ban")) 
+                            {
+                                JOptionPane.showMessageDialog(content, "Tài khoản của bạn đã bị ban!");
+                                logOut("koOk");
+                                dispose();
+//                                loginForm login = new loginForm();
+//                                login.setVisible(true);
                             }
                         }
                     } catch (Exception e) {
@@ -681,7 +691,7 @@ public class OverrallFrame extends javax.swing.JFrame implements MouseListener {
 
     private void logoutBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_logoutBtnActionPerformed
         // TODO add your handling code here:
-        logOut();
+        logOut("ok");
     }//GEN-LAST:event_logoutBtnActionPerformed
 
     /**

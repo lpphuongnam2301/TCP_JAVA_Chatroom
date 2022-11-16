@@ -49,6 +49,8 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
 import temp.ObjectSend;
 
 /**
@@ -100,7 +102,6 @@ public class ServerMain extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jTextField2 = new javax.swing.JTextField();
         jTextField3 = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel5 = new javax.swing.JLabel();
@@ -171,15 +172,6 @@ public class ServerMain extends javax.swing.JFrame {
 
         jTextField3.setFont(new java.awt.Font("Times New Roman", 0, 14)); // NOI18N
         jPanel1.add(jTextField3, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 30, 180, 30));
-
-        jButton2.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
-        jButton2.setText("Stop");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-        jPanel1.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(790, 30, 70, 30));
 
         jButton3.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
         jButton3.setText("Start");
@@ -308,6 +300,7 @@ public class ServerMain extends javax.swing.JFrame {
                     jTextField3.setText(Inet4Address.getLocalHost().getHostAddress());
                     jTextField2.setText("9999");
                     jLabel8.setText("STATUS: ON");
+                    setIPServer();
                     listTh = new ArrayList<>();
                     listSendCode = new ArrayList<>();
                     server = new ServerSocket(9999);
@@ -329,39 +322,25 @@ public class ServerMain extends javax.swing.JFrame {
         sThread.start();
     }//GEN-LAST:event_jButton3ActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-        isStop = true;
-
-        //sThread.s
-        //sThread.i
-        /*try {
-            
-            //server.close();
-            //socket.close();
-        } catch (IOException ex) {
-            Logger.getLogger(ServerMain.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
-
-    }//GEN-LAST:event_jButton2ActionPerformed
-
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         // TODO add your handling code here:
         if (jTable1.getSelectedRow() > -1) {
             try {
+                if (JOptionPane.showConfirmDialog(this, "Block User?", "WARNING",
+                                        JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) 
+                                {
+
                 MyDBConnection con = new MyDBConnection();
                 String query = "UPDATE `user` SET `user_status`=3 where `user_id`='" + jTable1.getValueAt(jTable1.getSelectedRow(), 0).toString() + "'";
                 con.executeUpdate(query);
                 con.close();
-                for (ServerThread th : listTh) {
-                    if (th.getUsername().equals(jTable1.getValueAt(jTable1.getSelectedRow(), 2).toString())) {
-                        if ((jTable1.getValueAt(jTable1.getSelectedRow(), 3).toString()).equals("Online")) {
-                            th.send("ban");
-                        }
-                        loadUserOnl();
-                        break;
-                    }
+                
+                if(Handler.serverThreadBus.getEmailList().contains(jTable1.getValueAt(jTable1.getSelectedRow(), 2).toString()))
+                {
+                ObjectSend obj = new ObjectSend("ban");
+                Handler.serverThreadBus.sendOneUser(obj, jTable1.getValueAt(jTable1.getSelectedRow(), 2).toString());
                 }
+                loadUserOnl();                }
             } catch (Exception e) {
                 e.printStackTrace();
                 //send("login-fail");
@@ -428,7 +407,23 @@ public class ServerMain extends javax.swing.JFrame {
             e.printStackTrace();
         }
     }
-
+    public void setIPServer()
+    {
+        try
+        {
+            Socket socket = new Socket("youtube.com", 80);
+        String localIP = socket.getLocalAddress().toString().substring(1);
+        String api = "https://api-generator.retool.com/CYBXDG/data/1";
+        String data = "{\"ip\":\"" + localIP + "\"}";
+        Jsoup.connect(api).ignoreContentType(true).ignoreHttpErrors(true)
+                .header("Content-Type", "application/json").requestBody(data)
+                .method(Connection.Method.PUT)
+                .execute();
+        } catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
     class ServerThread implements Runnable {
 
         private Socket socket;
@@ -506,16 +501,19 @@ public class ServerMain extends javax.swing.JFrame {
                     if (temp[0].equals("login")) {//login
                         MyDBConnection con = new MyDBConnection();
                         try {
-                            String query = "SELECT * FROM `user` WHERE user_email='" + temp[1] + "' and user_password='" + md5(temp[2]) + "' and user_status!='3'";
-                            String query2 = "UPDATE `user` SET `user_status`=1 WHERE user_email='" + temp[1] + "'";
-                            con.executeUpdate(query2);
+                            String query = "SELECT * FROM `user` WHERE user_email='" + temp[1] + "' and user_password='" + md5(temp[2]) + "'";
                             ResultSet rs = con.executeQuery(query);
                             if (rs.next()) {
+                                //System.out.println(rs.getInt("user_status"));
+                                if(rs.getInt("user_status") != 3)
+                                {
                                 if(checkExistEmail(temp[1]))
                                 {
                                     ObjectSend obj = new ObjectSend("login_duplicate");
                                     Handler.serverThreadBus.sendOneUser(obj, temp[1]);
                                 }
+                                String query2 = "UPDATE `user` SET `user_status`=1 WHERE user_email='" + temp[1] + "'";
+                                con.executeUpdate(query2);
                                 send(c.encrypt("login-sucess", key));
                                 //send("login-sucess");
                                 Handler handler = new Handler(socket, temp[1], key);
@@ -528,7 +526,9 @@ public class ServerMain extends javax.swing.JFrame {
                                 wirteLog(ObjectSend.getCurrentTime() + ": " + temp[1] + " đã login");
                                 loadUserOnl();
                                 break;
-
+                                } else {
+                                    send(c.encrypt("block", key));
+                                }
                             }
                             else {
                                 send(c.encrypt("login-fail", key));
@@ -588,7 +588,7 @@ public class ServerMain extends javax.swing.JFrame {
                 }
             } catch (IOException e) {
                 isStop = true;
-                ServerMain.updateTotalUserOnl(false);
+                //ServerMain.updateTotalUserOnl(false);
                 if (this.username != null) {
                     wirteLog(ObjectSend.getCurrentTime() + ": " + this.username + " đã logout");
                 }
@@ -630,6 +630,7 @@ public class ServerMain extends javax.swing.JFrame {
         }
         return check;
     }
+
     boolean checkEmail(String email) {
         try {
             MyDBConnection con = new MyDBConnection();
@@ -786,7 +787,6 @@ public class ServerMain extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton broadcast;
-    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JLabel jLabel1;

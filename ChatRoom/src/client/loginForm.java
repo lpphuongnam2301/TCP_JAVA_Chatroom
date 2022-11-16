@@ -31,6 +31,10 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import org.json.JSONObject;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import server.cipher;
 
 /**
@@ -51,6 +55,7 @@ public class loginForm extends javax.swing.JFrame {
     Thread th;
     RegisterForm regF;
     cipher c = new cipher();
+    String ipServer;
 
     /**
      * Creates new form loginForm
@@ -61,7 +66,7 @@ public class loginForm extends javax.swing.JFrame {
             setSize(496,375);
             this.setLocationRelativeTo(null);
             setVisible(true);
-            socketClient = new Socket("localhost", 9999);
+            socketClient = new Socket(getIpServer(), 9999);
             System.out.println("Kết nối thành công!");
             connectServer();
         } catch (IOException ex) {
@@ -72,7 +77,25 @@ public class loginForm extends javax.swing.JFrame {
         
 
     }
-
+    public String getIpServer()
+    {
+        String res = "localhost";
+        try
+        {
+        String api = "https://api-generator.retool.com/CYBXDG/data/1";
+        Document doc =  Jsoup.connect(api).ignoreContentType(true).ignoreHttpErrors(true)
+                .header("Content-Type", "application/json")
+                .method(Connection.Method.GET)
+                .execute().parse();
+        JSONObject data = new JSONObject(doc.text());
+        System.out.println(data.get("ip"));
+        res = data.get("ip").toString();
+        } catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        return res;
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -255,7 +278,9 @@ public class loginForm extends javax.swing.JFrame {
                                
                                 dispose();
                                 break;
-                            } else if (msg.equals("login-fail")) {
+                            } else if (msg.equals("block")) {
+                                JOptionPane.showMessageDialog(body, "Tài khoản của bạn đã bị ban");
+                            }else if (msg.equals("login-fail")) {
                                 System.out.println("Tài khoản hoặc mật khẩu không chính xác");
                                 jLabel4.setVisible(true);
                             } else if (msg.equals("signup-fail")) {

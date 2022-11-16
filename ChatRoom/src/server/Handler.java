@@ -382,7 +382,13 @@ public class Handler implements Runnable {
                 if(obj.getTag().equals("log_out"))
                 {            
                     String userEmail = (String)obj.getObject();
-                    dal.updateUserStatus(userEmail, 2);
+                    String status = (String)obj.getObjectTemp();
+                    if(status.equals("ok"))
+                    {
+                        dal.updateUserStatus(userEmail, 2);
+                    } else {
+                        dal.updateUserStatus(userEmail, 3);
+                    }
                     
                     ArrayList<UserDTO> list = dal.readUserFriend(email);
                     for(UserDTO a : list)
