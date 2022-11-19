@@ -483,7 +483,7 @@ public class RegisterForm extends javax.swing.JFrame {
 
     private void jCheckBoxShowPass2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxShowPass2ActionPerformed
         // TODO add your handling code here:
-         if (jCheckBoxShowPass1.isSelected()) {
+         if (jCheckBoxShowPass2.isSelected()) {
             repasstxt.setEchoChar((char) 0);
         } else {
             repasstxt.setEchoChar('*');

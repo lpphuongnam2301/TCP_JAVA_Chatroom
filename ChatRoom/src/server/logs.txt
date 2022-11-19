@@ -3700,3 +3700,37 @@ nam2301@gmail.com đã logout
 2022-11-16 21:30:53: client@gmail.com đã logout
 2022-11-16 21:31:10: namnam2301@gmail.com đã login
 2022-11-16 21:31:34: namnam2301@gmail.com đã logout
+2022-11-17 09:46:24: namnam2301@gmail.com đã login
+2022-11-17 09:46:31: namnam2301@gmail.com đã logout
+2022-11-17 09:47:30: baobeo@gmail.com đã login
+2022-11-17 09:47:35: namnam2301@gmail.com đã login
+2022-11-17 09:49:54: baobeo@gmail.com đã tạo nhóm mới 'Lich Su'
+2022-11-17 09:52:56: namnam2301@gmail.com đã logout
+2022-11-17 09:54:02: baobeo@gmail.com đã logout
+2022-11-17 10:03:35: namtor2301@gmail.com đã đăng ký
+2022-11-17 10:03:54: namtor2301@gmail.com đã login
+2022-11-17 10:04:02: namtor2301@gmail.com đã logout
+2022-11-17 10:04:21: namnam2301@gmail.com đã login
+2022-11-17 10:05:01: namnam2301@gmail.com đổi thông tin
+2022-11-17 10:05:35: baobeo@gmail.com đã login
+2022-11-17 10:09:35: test3@gmail.com đã login
+2022-11-17 10:09:43: test3@gmail.com đã logout
+2022-11-17 10:10:00: namtor2301@gmail.com đã login
+2022-11-17 10:10:20: namnam2301@gmail.com đã kết bạn vớinamtor2301@gmail.com
+2022-11-17 10:11:07: namtor2301@gmail.com đã logout
+2022-11-17 10:12:30: namtor2301@gmail.com đã login
+2022-11-17 10:12:55: namnam2301@gmail.com đã tạo nhóm mới 'baocao'
+2022-11-17 10:14:00: namtor2301@gmail.com đã logout
+2022-11-17 10:14:30: client@gmail.com đã login
+2022-11-17 10:16:46: namnam2301@gmail.com rời nhóm 'BÁO CÁO'
+2022-11-17 10:17:36: client@gmail.com đã logout
+2022-11-17 10:18:58: namnam2301@gmail.com đã logout
+2022-11-17 10:20:04: namnam2301@gmail.com đã login
+2022-11-17 10:20:23: baobeo@gmail.com đã login
+2022-11-17 10:20:24: namnam2301@gmail.com đã login
+2022-11-17 10:20:34: namnam2301@gmail.com đã logout
+2022-11-17 10:20:55: namnam2301@gmail.com đổi mật khẩu
+2022-11-17 10:20:57: namnam2301@gmail.com đã logout
+2022-11-17 10:21:15: namnam2301@gmail.com đã login
+2022-11-17 10:21:22: namnam2301@gmail.com đã logout
+2022-11-17 10:38:37: baobeo@gmail.com đã login

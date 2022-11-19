@@ -732,8 +732,11 @@ public class ServerMain extends javax.swing.JFrame {
             totalUserOnl += 1;
             totaluseronl.setText("USER ONLINE: " + totalUserOnl);
         } else {
+//            if(totalUserOnl >0)
+//            {
             totalUserOnl -= 1;
             totaluseronl.setText("USER ONLINE: " + totalUserOnl);
+//            }
         }
     }
 
