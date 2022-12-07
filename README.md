@@ -2,8 +2,8 @@
 
 >**Introduce:** Chatroom using TCP Socket, Java Swing, MySQL, AES encrypt
 
->**Libraries:**
-- Folder Lib
+>**Libraries + SQL:**
+- Folder Lib, folder SQL
 
 >**Features:**
 - Chat 1v1, Chat group
@@ -21,6 +21,7 @@
 >**Prepare**
 - Add Libraries
 - Download XAMPP
+- SQL
 
 >**Preview**
 
